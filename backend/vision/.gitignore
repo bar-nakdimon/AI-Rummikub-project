@@ -1,0 +1,77 @@
+# datasets
+classification_dataset/
+classification_dataset_split/
+feedback_dataset/
+exported_feedback_dataset/
+test_images/
+
+detection_dataset/images/
+detection_dataset/labels/
+
+evaluate_detector_edge_cases.py
+debug_vision_pipeline.py
+debug_finetuning_analysis.py
+debug_finetuning_rack_analysis.py
+debug_single_detector_image.py
+debug_output/
+
+rack_finetuning_dataset/
+cvat_roboflow_autolabels/
+cvat_roboflow_autolabels.zip
+roboflow_detector_dataset/
+detector_merged_dataset/
+roboflow_feedback_dataset/
+
+detector_combined_v2/
+detector_combined_v2.zip
+
+models/detector_best_old.pt
+models/detector_best_backup_*.pt
+models/detector_best_finetuned.pt
+models/detector_finetuned_feedback.pt
+
+# trained / pretrained weights
+yolo*.pt
+
+# yolo outputs
+runs/
+
+# cache
+*.cache
+
+# python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# logs
+*.log
+
+# jupyter
+.ipynb_checkpoints/
+
+# pytest
+.pytest_cache/
+
+# torch / cuda temp
+*.tmp
+
+# build
+build/
+dist/
+
+# optional
+*.bak

@@ -1,0 +1,28 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y \
+    libglib2.0-0 \
+    libgl1 \
+    libxcb1 \
+    libx11-6 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install torch/torchvision BEFORE copying requirements.txt, so this slow,
+# multi-hundred-MB download is cached independently of anything in
+# requirements.txt. Otherwise, every time requirements.txt changes (e.g.
+# adding a small package like boto3), Docker invalidates every layer that
+# comes after the COPY of that file — including this one — and re-downloads
+# torch from scratch for no reason.
+RUN pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu torch torchvision
+
+COPY backend/requirements.txt ./backend/requirements.txt
+
+RUN pip install --no-cache-dir -r backend/requirements.txt
+
+COPY backend ./backend
+
+EXPOSE 8000
+
+CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]

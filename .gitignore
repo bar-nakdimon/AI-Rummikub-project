@@ -1,0 +1,85 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+runs/
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# IDE and Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS specific
+Thumbs.db
+.DS_Store
+
+# Expo specific
+.expo/
+expo-env.d.ts
+web-build/
+.metro-health-check*
+
+# Native builds
+ios/
+android/
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem
+
+# Logs
+*.log
+logs/
+
+# Database
+data/
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary files
+*.tmp
+.cache/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Pytest
+.pytest_cache/
+
+# Local vision debug outputs
+backend/vision/debug_artifacts/
+backend/vision/batch_results/
+backend/vision/debug_summaries/
+
+# Virtual environments
+venv/
+.venv/
+
+# Local Docker overrides
+docker-compose.override.yml
+docker-compose.gpu.local.yml
+backend/Dockerfile.gpu.local
+
+yolo26n.pt
+
