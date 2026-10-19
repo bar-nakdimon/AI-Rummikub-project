@@ -14,7 +14,7 @@ Take a picture of your rack and the shared board — the app detects every tile,
 - [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
 - [Setup and Running](#setup-and-running)
-- [API Documentation (Swagger)](#api-documentation-swagger)
+- [API Endpoints](#api-endpoints)
 - [Testing](#testing)
 - [Application Flow](#application-flow)
 
@@ -74,7 +74,7 @@ This app solves it by:
 The system is a three-tier architecture:
 
 - **Mobile app** (React Native + Expo) — captures the rack/board photos, renders the review and simulation screens, and talks to the API gateway over HTTP.
-- **Node.js / Express API gateway** — the single entry point for the mobile app. Owns authentication (signup/login, JWT issuance and verification), forwards vision and solver requests to the Python service, and persists users, solved-solution history, and vision feedback in MongoDB. This is also where the OpenAPI/Swagger docs are served.
+- **Node.js / Express API gateway** — the single entry point for the mobile app. Owns authentication (signup/login, JWT issuance and verification), forwards vision and solver requests to the Python service, and persists users, solved-solution history, and vision feedback in MongoDB.
 - **Python / FastAPI service** — stateless compute service that does the actual work: the vision pipeline (rack region detection, YOLOv8 tile detection, ResNet18 classification) and the ILP solver. It has no direct knowledge of users or auth; the Node gateway proxies requests to it.
 - **MongoDB** — stores user accounts, saved solutions, and vision-feedback metadata.
 
@@ -92,7 +92,6 @@ The whole stack runs locally with a single `docker compose up`.
 | Computer vision | YOLOv8 (Ultralytics), ResNet18 (PyTorch/torchvision), OpenCV |
 | Optimization | PuLP (Integer Linear Programming) |
 | Database | MongoDB |
-| API documentation | Swagger UI / OpenAPI 3.0 (`swagger-jsdoc` on the gateway, native FastAPI docs on the vision service) |
 | Containerization | Docker, Docker Compose |
 | Testing | pytest + `requests` (integration tests against a live stack) |
 
@@ -117,9 +116,9 @@ rummikub-project/
 │
 ├── api/                         # Node.js Express API gateway
 │   └── src/
-│       ├── config/              # DB connection, JWT config, Swagger definition
+│       ├── config/              # DB connection, JWT config
 │       ├── controllers/         # Auth, vision, solver, solution-history
-│       ├── routes/               # Express routers with @swagger doc blocks
+│       ├── routes/               # Express routers
 │       ├── services/             # Vision proxying, feedback, image normalization
 │       ├── models/               # Data models (User, Solution, VisionFeedback)
 │       └── middleware/           # JWT auth middleware
@@ -240,18 +239,9 @@ docker compose down
 
 ---
 
-## API Documentation (Swagger)
+## API Endpoints
 
-Both backend services expose interactive OpenAPI/Swagger docs once running:
-
-| Service | Swagger UI | Raw OpenAPI JSON |
-|---|---|---|
-| Node API gateway (auth, vision, solver, solutions) | `http://localhost:3000/api/docs` | `http://localhost:3000/api/docs.json` |
-| Python vision/solver service | `http://localhost:8000/docs` | `http://localhost:8000/openapi.json` |
-
-Protected endpoints on the Node API require a JWT: log in via `/api/auth/login` in the docs page, then click **Authorize** and paste the token (`Bearer <token>` is added automatically).
-
-**Node API gateway endpoints** — this is the full surface the mobile app talks to:
+These are the Node API gateway endpoints — the full surface the mobile app talks to:
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
@@ -265,8 +255,6 @@ Protected endpoints on the Node API require a JWT: log in via `/api/auth/login` 
 | POST | `/api/solver/validate` | JWT | Validate a `GameState` (runs, groups, joker rules) |
 | POST | `/api/solutions` | JWT | Save a solved game state |
 | GET | `/api/solutions` | JWT | List the logged-in user's saved solutions |
-
-Every one of these is documented in full (request/response schemas, status codes) in the Swagger UI above — this table is just the quick-reference version.
 
 ---
 
