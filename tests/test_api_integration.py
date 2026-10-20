@@ -99,8 +99,8 @@ def test_user_login():
 # ---------------------------------------------------------------------------
 def test_upload_game_images(token):
     files = {
-        "myBoard": open(os.path.join(FIXTURES_DIR, "rack.jpg"), "rb"),
-        "sharedBoard": open(os.path.join(FIXTURES_DIR, "table.jpg"), "rb"),
+        "myBoard": ("rack.jpg", open(os.path.join(FIXTURES_DIR, "rack.jpg"), "rb"), "image/jpeg"),
+        "sharedBoard": ("table.jpg", open(os.path.join(FIXTURES_DIR, "table.jpg"), "rb"), "image/jpeg"),
     }
     headers = {"Authorization": f"Bearer {token}"}
     response = requests.post(
@@ -117,8 +117,8 @@ def test_upload_game_images(token):
 # ---------------------------------------------------------------------------
 def test_submit_vision_feedback(token):
     files = {
-        "rackImage": open(os.path.join(FIXTURES_DIR, "rack.jpg"), "rb"),
-        "boardImage": open(os.path.join(FIXTURES_DIR, "table.jpg"), "rb"),
+        "rackImage": ("rack.jpg", open(os.path.join(FIXTURES_DIR, "rack.jpg"), "rb"), "image/jpeg"),
+        "boardImage": ("table.jpg", open(os.path.join(FIXTURES_DIR, "table.jpg"), "rb"), "image/jpeg"),
     }
     feedback_payload = {
         "corrections": [

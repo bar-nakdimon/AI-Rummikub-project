@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
     aspectRatio: 1.4,
   },
   canvasImage: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     width: '100%',
     height: '100%',
   },

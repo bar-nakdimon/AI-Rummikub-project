@@ -11,11 +11,11 @@ export function useColorScheme() {
     setHasHydrated(true);
   }, []);
 
-  const colorScheme = useRNColorScheme();
+  const colorScheme = useRNColorScheme() === 'dark' ? 'dark' : 'light';
 
   if (hasHydrated) {
     return colorScheme;
   }
 
-  return 'light';
+  return 'light' as const;
 }
