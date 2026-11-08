@@ -1,0 +1,40 @@
+# Production stack: runs the prebuilt images published by the CD workflow
+# to ghcr.io instead of building from source. Used on the cloud server.
+#
+#   JWT_SECRET=<long random string> docker compose -f docker-compose.prod.yml up -d
+#
+# Only the API gateway is exposed (port 3000). The Python service and MongoDB
+# are reachable only from inside the Docker network.
+
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+
+  python-backend:
+    image: ghcr.io/bar-nakdimon/rummikub-backend:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      # Optional: leave empty to store vision feedback on local disk instead of S3.
+      - S3_BUCKET_NAME=${S3_BUCKET_NAME:-}
+
+  node-api:
+    image: ghcr.io/bar-nakdimon/rummikub-api:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET must be set}
+      - MONGODB_URI=mongodb://mongo:27017/rummikub
+      - VISION_SERVER_URL=http://python-backend:8000
+      - VISION_SOLVER_URL=http://python-backend:8000
+    depends_on:
+      - mongo
+      - python-backend
+
+volumes:
+  mongo_data:
