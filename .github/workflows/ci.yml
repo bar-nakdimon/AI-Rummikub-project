@@ -54,3 +54,24 @@ jobs:
 
       - name: Compile TypeScript
         run: npm run build
+
+  terraform:
+    name: Terraform validate
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - name: Check formatting
+        run: terraform fmt -check -recursive
+
+      # No AWS credentials needed: validate only checks the code itself.
+      - name: Init (without backend)
+        run: terraform init -backend=false -input=false
+
+      - name: Validate
+        run: terraform validate

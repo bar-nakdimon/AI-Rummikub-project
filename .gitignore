@@ -83,3 +83,9 @@ backend/Dockerfile.gpu.local
 
 yolo26n.pt
 
+# Terraform (state can contain sensitive data; the lock file IS committed)
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
