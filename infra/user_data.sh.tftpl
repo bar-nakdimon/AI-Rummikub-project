@@ -1,0 +1,30 @@
+#!/bin/bash
+# Runs once, as root, on the server's first boot. Output: /var/log/rummikub-setup.log
+set -euo pipefail
+exec > /var/log/rummikub-setup.log 2>&1
+
+echo "== Installing Docker"
+apt-get update
+apt-get install -y docker.io docker-compose-v2
+systemctl enable --now docker
+
+echo "== Writing the production stack"
+mkdir -p /opt/rummikub
+cd /opt/rummikub
+
+cat > docker-compose.yml <<'COMPOSE'
+${compose_file}
+COMPOSE
+
+# The JWT secret is generated on the server and never leaves it.
+umask 077
+cat > .env <<ENV
+JWT_SECRET=$(openssl rand -hex 32)
+IMAGE_TAG=${image_tag}
+ENV
+
+echo "== Starting the stack"
+docker compose pull
+docker compose up -d
+
+echo "== Done"
