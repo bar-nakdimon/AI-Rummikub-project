@@ -83,6 +83,7 @@ The whole stack runs locally with a single `docker compose up`.
 | API documentation | Swagger UI / OpenAPI 3.0 (`swagger-jsdoc` on the gateway, native FastAPI docs on the vision service) |
 | Containerization | Docker, Docker Compose |
 | CI/CD | GitHub Actions, GitHub Container Registry (ghcr.io) |
+| Infrastructure as Code | Terraform, AWS EC2 |
 | Testing | pytest (unit tests + integration tests against a live stack) |
 
 ---
@@ -95,10 +96,10 @@ pull request ──► CI: unit tests + TypeScript build ──► merge to main
 
 | Workflow | Runs on | What it does |
 |---|---|---|
-| **CI** ([`ci.yml`](.github/workflows/ci.yml)) | Every pull request to `main`, and every push to `main` | Runs the Python unit tests and compiles the TypeScript API gateway, in parallel |
+| **CI** ([`ci.yml`](.github/workflows/ci.yml)) | Every pull request to `main`, and every push to `main` | Runs the Python unit tests, compiles the TypeScript API gateway, and checks the Terraform code (`fmt` + `validate`), in parallel |
 | **CD** ([`deploy.yml`](.github/workflows/deploy.yml)) | After CI passes on `main` | Builds the `api` and `backend` Docker images and publishes them to GitHub Container Registry |
 
-- `main` is protected: a pull request cannot be merged unless both CI checks pass.
+- `main` is protected: a pull request cannot be merged unless the CI checks pass.
 - CD only runs on commits that passed CI, and builds the exact commit CI tested.
 - Every image is tagged `latest` and `sha-<commit>`, so any previous version can be pulled again for a rollback.
 
@@ -113,12 +114,26 @@ docker pull ghcr.io/bar-nakdimon/rummikub-backend:latest
 
 ## Cloud (AWS)
 
+**EC2 — application server, provisioned with Terraform.** The production stack runs on an AWS EC2 server provisioned with Terraform ([`infra/`](infra/)). The server is created on demand with `terraform apply` and destroyed afterwards with `terraform destroy`.
+
+- Terraform creates the EC2 instance, a security group that opens only port 3000, and an IAM role for shell access through AWS Session Manager — no SSH port or keys.
+- On first boot the server installs Docker and runs [`docker-compose.prod.yml`](docker-compose.prod.yml) with the published ghcr.io images. Only the API gateway is exposed; the Python service and MongoDB stay inside the Docker network.
+- `JWT_SECRET` is generated on the server itself and never leaves it.
+- `terraform apply` prints the Swagger and API URLs. See [`infra/README.md`](infra/README.md) for details.
+
+```bash
+cd infra
+terraform init
+terraform apply     # create the server and start the app
+terraform destroy   # delete everything
+```
+
 **S3 — vision feedback storage.** When a user corrects a detected tile, the photo and a JSON file describing the correction are saved as a training example for future model retraining.
 
 - If `S3_BUCKET_NAME` is set, they are uploaded to an S3 bucket ([`s3_storage.py`](backend/vision/s3_storage.py)).
 - If it isn't, they are saved to local disk instead, so the project runs without an AWS account.
 - Configuration lives in `backend/.env` — copy [`backend/.env.example`](backend/.env.example) and fill in the IAM credentials and bucket name. The file is git-ignored, so credentials are never committed.
-- The bucket blocks all public access; only the object key is stored, never a public URL.
+- The bucket should block all public access; only the object key is stored, never a public URL.
 
 `GET http://localhost:8000/storage-status` reports whether S3 or local disk is currently in use.
 
@@ -136,8 +151,10 @@ AI-Rummikub-project/
 ├── tests/
 │   ├── unit/               # pytest unit tests (logic, solver, explainer, models)
 │   └── test_api_integration.py
-├── .github/workflows/      # CI (tests + build) and CD (Docker images → ghcr.io)
-└── docker-compose.yml
+├── infra/                  # Terraform: AWS EC2 server, security group, IAM role
+├── .github/workflows/      # CI (tests + build + Terraform checks) and CD (Docker images → ghcr.io)
+├── docker-compose.yml      # Local development (builds from source)
+└── docker-compose.prod.yml # Production (prebuilt ghcr.io images)
 ```
 
 ---
