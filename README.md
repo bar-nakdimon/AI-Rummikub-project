@@ -63,9 +63,10 @@ The system is a three-tier architecture:
 - **Node.js / Express API gateway** — the single entry point for the mobile app. Owns authentication (signup/login, JWT issuance and verification), forwards vision and solver requests to the Python service, and persists users, solved-solution history, and vision feedback in MongoDB. This is also where the OpenAPI/Swagger docs are served.
 - **Python / FastAPI service** — stateless compute service that does the actual work: the vision pipeline (rack region detection, YOLOv8 tile detection, ResNet18 classification) and the ILP solver. It has no direct knowledge of users or auth; the Node gateway proxies requests to it.
 - **MongoDB** — stores user accounts, saved solutions, and vision-feedback metadata.
+- **AWS EC2** — the production server, provisioned with Terraform (see [Cloud (AWS)](#cloud-aws)).
 - **AWS S3** — stores the photos behind vision-feedback corrections (see [Cloud (AWS)](#cloud-aws)).
 
-The whole stack runs locally with a single `docker compose up`.
+The whole stack runs locally with a single `docker compose up`, and on AWS EC2 with `terraform apply`.
 
 ---
 
