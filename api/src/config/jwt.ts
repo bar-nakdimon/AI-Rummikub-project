@@ -5,7 +5,13 @@ export interface TokenPayload {
   email: string;
 }
 
-const JWT_SECRET: string = process.env.JWT_SECRET || 'your_jwt_secret_key_change_this_in_production';
+// In production, refuse to start without a real secret instead of silently
+// signing tokens with a publicly known default.
+if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET must be set when NODE_ENV=production');
+}
+
+const JWT_SECRET: string = process.env.JWT_SECRET || 'dev_only_jwt_secret_do_not_use_in_production';
 const JWT_EXPIRE: string = process.env.JWT_EXPIRE || '7d';
 
 export function generateToken(payload: TokenPayload): string {
