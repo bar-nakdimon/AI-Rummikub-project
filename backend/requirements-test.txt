@@ -1,0 +1,6 @@
+# Minimal dependencies for the unit tests in tests/unit/.
+# The game logic and solver are pure Python, so the heavy vision
+# dependencies (torch, ultralytics, opencv) are not needed here.
+pytest>=8.0.0
+pydantic>=2.0.0
+pulp>=2.8.0,<4
