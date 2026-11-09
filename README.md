@@ -215,11 +215,7 @@ docker compose up
 This starts 4 containers:
 
 | Container | Port | Description |
-|
-
-</details>
-
----|---|---|
+|---|---|---|
 | `rummikub-mongo` | 27017 | MongoDB |
 | `rummikub-python-backend` | 8000 | Vision and logic server |
 | `rummikub-node-api` | 3000 | REST API gateway |
@@ -239,6 +235,8 @@ All dependencies install automatically inside Docker — no manual `pip install`
 docker compose down
 ```
 
+</details>
+
 ---
 
 ## API Documentation (Swagger)
@@ -256,11 +254,7 @@ Protected endpoints on the Node API require a JWT: log in via `/api/auth/login` 
 <summary><b>Node API gateway endpoints</b> — the full surface the mobile app talks to</summary>
 
 | Method | Endpoint | Auth | Description |
-|
-
-</details>
-
----|---|---|---|
+|---|---|---|---|
 | POST | `/api/auth/signup` | — | Create an account |
 | POST | `/api/auth/login` | — | Log in, get a JWT |
 | GET | `/api/auth/profile` | JWT | Get the logged-in user's profile |
@@ -271,6 +265,8 @@ Protected endpoints on the Node API require a JWT: log in via `/api/auth/login` 
 | POST | `/api/solver/validate` | JWT | Validate a `GameState` (runs, groups, joker rules) |
 | POST | `/api/solutions` | JWT | Save a solved game state |
 | GET | `/api/solutions` | JWT | List the logged-in user's saved solutions |
+
+</details>
 
 ---
 
@@ -299,20 +295,6 @@ python -m pytest tests/unit -v
 [`tests/test_api_integration.py`](tests/test_api_integration.py) sends real HTTP requests to the running stack (no mocking), covering the core user stories: login, uploading game photos, submitting a tile correction and solving a game state. They use two real Rummikub photos from `tests/fixtures/` and are run manually against `docker compose`:
 
 ```bash
-python -m pytest tests/test_api_integration.py -v -s
-```
-
----|---|
-| `test_user_login` | Login |
-| `test_upload_game_images` | Upload rack/board photos and get back a detected `GameState` |
-| `test_submit_vision_feedback` | Submit a manual correction of a detected tile |
-| `test_solve_game_state` | Get the recommended move from the ILP solver |
-
-Two real Rummikub photos (`tests/fixtures/rack.jpg`, `tests/fixtures/table.jpg`) are included so the upload tests exercise genuine detections.
-
-```bash
-docker compose up                                  # from the project root, in another terminal
-pip install requests pytest
 python -m pytest tests/test_api_integration.py -v -s
 ```
 
