@@ -8,8 +8,6 @@ An AI-powered mobile assistant that finds the optimal move in a Rummikub game fr
 
 Take a picture of your rack and the shared board — the app detects every tile, lets you fix any mistakes, then solves the board and shows you exactly what to play.
 
----
-
 Watch it in action:
 
 <a href="https://www.youtube.com/watch?v=LraNZDlzjIY">
