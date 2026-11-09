@@ -10,7 +10,7 @@ Take a picture of your rack and the shared board — the app detects every tile,
 
 ---
 
-## Demo
+Watch it in action:
 
 <a href="https://www.youtube.com/watch?v=LraNZDlzjIY">
   <img src=".github/assets/demo-thumbnail.png" alt="Rummikub Solver – demo video" width="640">
