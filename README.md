@@ -13,7 +13,7 @@ Take a picture of your rack and the shared board — the app detects every tile,
 ## Demo
 
 <a href="https://www.youtube.com/watch?v=LraNZDlzjIY">
-  <img src="https://img.youtube.com/vi/LraNZDlzjIY/maxresdefault.jpg" alt="Rummikub Solver – demo video" width="640">
+  <img src=".github/assets/demo-thumbnail.png" alt="Rummikub Solver – demo video" width="640">
 </a>
 
 ---
@@ -64,6 +64,16 @@ This app solves it by:
 ---
 
 ## Architecture
+
+```mermaid
+flowchart LR
+    App["Mobile App<br/>React Native · Expo"] -->|"HTTP + JWT"| API["API Gateway<br/>Node.js · Express"]
+    subgraph EC2["AWS EC2 · provisioned with Terraform"]
+        API -->|"proxies vision & solver calls"| PY["Vision & Solver Service<br/>Python · FastAPI<br/>YOLOv8 · ResNet18 · ILP"]
+        API --> DB[("MongoDB")]
+    end
+    PY -->|"feedback images"| S3[("AWS S3")]
+```
 
 The system is a three-tier architecture:
 
@@ -123,28 +133,16 @@ docker pull ghcr.io/bar-nakdimon/rummikub-backend:latest
 
 ## Cloud (AWS)
 
-**EC2 — application server, provisioned with Terraform.** The production stack runs on an AWS EC2 server provisioned with Terraform ([`infra/`](infra/)). The server is created on demand with `terraform apply` and destroyed afterwards with `terraform destroy`.
-
-- Terraform creates the EC2 instance, a security group that opens only port 3000, and an IAM role for shell access through AWS Session Manager — no SSH port or keys.
-- On first boot the server installs Docker and runs [`docker-compose.prod.yml`](docker-compose.prod.yml) with the published ghcr.io images. Only the API gateway is exposed; the Python service and MongoDB stay inside the Docker network.
-- `JWT_SECRET` is generated on the server itself and never leaves it.
-- `terraform apply` prints the Swagger and API URLs. See [`infra/README.md`](infra/README.md) for details.
+- **EC2** – the production stack runs on an EC2 server provisioned with Terraform ([`infra/`](infra/)): an instance, a security group that opens only port 3000, and an IAM role for access through AWS Session Manager (no SSH). On first boot it installs Docker and runs the published ghcr.io images; `JWT_SECRET` is generated on the server and never leaves it.
+- **S3** – when a user corrects a detected tile, the photo and a JSON description are uploaded to S3 as a training example for future retraining. Without S3 configured, they are saved to local disk, so the project runs without an AWS account.
 
 ```bash
 cd infra
-terraform init
 terraform apply     # create the server and start the app
 terraform destroy   # delete everything
 ```
 
-**S3 — vision feedback storage.** When a user corrects a detected tile, the photo and a JSON file describing the correction are saved as a training example for future model retraining.
-
-- If `S3_BUCKET_NAME` is set, they are uploaded to an S3 bucket ([`s3_storage.py`](backend/vision/s3_storage.py)).
-- If it isn't, they are saved to local disk instead, so the project runs without an AWS account.
-- Configuration lives in `backend/.env` — copy [`backend/.env.example`](backend/.env.example) and fill in the IAM credentials and bucket name. The file is git-ignored, so credentials are never committed.
-- The bucket should block all public access; only the object key is stored, never a public URL.
-
-`GET http://localhost:8000/storage-status` reports whether S3 or local disk is currently in use.
+Full details: [`infra/README.md`](infra/README.md)
 
 ---
 
@@ -169,6 +167,9 @@ AI-Rummikub-project/
 ---
 
 ## Setup and Running
+
+<details>
+<summary><b>Show setup instructions</b></summary>
 
 ### Prerequisites
 
@@ -214,7 +215,11 @@ docker compose up
 This starts 4 containers:
 
 | Container | Port | Description |
-|---|---|---|
+|
+
+</details>
+
+---|---|---|
 | `rummikub-mongo` | 27017 | MongoDB |
 | `rummikub-python-backend` | 8000 | Vision and logic server |
 | `rummikub-node-api` | 3000 | REST API gateway |
@@ -247,10 +252,15 @@ Both backend services expose interactive OpenAPI/Swagger docs once running:
 
 Protected endpoints on the Node API require a JWT: log in via `/api/auth/login` in the docs page, then click **Authorize** and paste the token (`Bearer <token>` is added automatically).
 
-**Node API gateway endpoints** — this is the full surface the mobile app talks to:
+<details>
+<summary><b>Node API gateway endpoints</b> — the full surface the mobile app talks to</summary>
 
 | Method | Endpoint | Auth | Description |
-|---|---|---|---|
+|
+
+</details>
+
+---|---|---|---|
 | POST | `/api/auth/signup` | — | Create an account |
 | POST | `/api/auth/login` | — | Log in, get a JWT |
 | GET | `/api/auth/profile` | JWT | Get the logged-in user's profile |
@@ -286,10 +296,13 @@ python -m pytest tests/unit -v
 
 ### Integration tests
 
-[`tests/test_api_integration.py`](tests/test_api_integration.py) sends real HTTP requests to the running stack, with no mocking. These tests are **run manually** against `docker compose`, and mirror the project's core user stories:
+[`tests/test_api_integration.py`](tests/test_api_integration.py) sends real HTTP requests to the running stack (no mocking), covering the core user stories: login, uploading game photos, submitting a tile correction and solving a game state. They use two real Rummikub photos from `tests/fixtures/` and are run manually against `docker compose`:
 
-| Test | User story |
-|---|---|
+```bash
+python -m pytest tests/test_api_integration.py -v -s
+```
+
+---|---|
 | `test_user_login` | Login |
 | `test_upload_game_images` | Upload rack/board photos and get back a detected `GameState` |
 | `test_submit_vision_feedback` | Submit a manual correction of a detected tile |
